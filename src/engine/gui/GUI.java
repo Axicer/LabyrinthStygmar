@@ -1,22 +1,16 @@
 package engine.gui;
 
-import engine.game.MessageService;
+import engine.game.Game;
+import engine.modele.map.Orientation;
 import engine.sound.SoundRegistry;
 import engine.game.Scenario;
-import engine.modele.entity.Entity;
 import engine.modele.entity.player.Player;
-import engine.modele.objets.Medicament;
-import engine.modele.entity.Monstre;
-import engine.modele.objets.Nourriture;
-import engine.modele.objets.Objet;
-import engine.modele.batiment.Piece;
-import engine.modele.objets.Tresor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,47 +24,15 @@ public class GUI extends JFrame {
 
     public static final int MAIN_WIDTH = 690;
     public static final int MAIN_HEIGHT = 690;
-    public static JFrame frame;
+    private final PlayerDataFrame playerDataFrame;
+    private final Board board;
     private JPanel panel;
 
-    private Player player = Scenario.player;
-    private Tresor tresor = Scenario.tresor;
-    private Objet[] objet = Scenario.objets;
-    private Entity[] individuses = Scenario.entities;
-    private Objet[] objects = player.getInventaire();
-    int i = 0;
-    private Piece p1 = Scenario.p1;
-    private int force = player.getForce();
-    private int vie = player.getVie();
-    private Key cl1 = Scenario.cl1;
-    private Key cl2 = Scenario.cl2;
-    private Key cl3 = Scenario.cl3;
-    private InfoJoueur infoJoueur;
-
-    JLabel info, Vie, Force, obj, messages;
-    String objets = "Objets : ";
-    panneau pan = new panneau();
-    JButton nord = pan.nord;
-    JButton nord1 = pan.nord1;
-    JButton sud = pan.sud;
-    JButton sud1 = pan.sud1;
-    JButton est = pan.est;
-    JButton est1 = pan.est1;
-    JButton ouest = pan.ouest;
-    JButton ouest1 = pan.ouest1;
-    JButton key1 = pan.key1;
-    JButton key2 = pan.key2;
-    JButton key3 = pan.key3;
-    JButton food = pan.food;
-    JButton med = pan.med;
-    JButton cuisinier = pan.cuisinier;
-    JButton medecin = pan.medecin;
-    JButton monstre = pan.monstre;
-    JButton tresorbutton = pan.tresor;
-    JPanel panelgagne = new JPanel();
-    JPanel panelperdu = new JPanel();
+    JLabel info, healthLabel, forceLabel, inventoryLabel, actionLabel;
+    JPanel winPanel = new JPanel();
+    JPanel loosePanel = new JPanel();
     JLabel perdu = new JLabel("Vous avez perdu !  :( ");
-    JLabel gagne = new JLabel("Vous avez gagn� !  :) ");
+    JLabel gagne = new JLabel("Vous avez gagné !  :) ");
     JButton replay = new JButton("Recommencer");
     JButton quitter = new JButton("Quitter");
     JPanel south = new JPanel();
@@ -80,119 +42,92 @@ public class GUI extends JFrame {
      */
     public GUI() {
         initComponents();
-        frame = this;
-        infoJoueur = new InfoJoueur();
-        infoJoueur.setVisible(true);
-        infoJoueur.setLocation(1050, 0);
+        playerDataFrame = new PlayerDataFrame();
+        playerDataFrame.setVisible(true);
+        playerDataFrame.setLocation(1050, 0);
         this.setLayout(null);
+        board = new Board();
 
-        nord.setOpaque(false);
-        nord.setContentAreaFilled(false);
-        nord.setBorderPainted(false);
+        Stream.of(Orientation.values()).forEach(orientation -> {
+            board.getDoorButtons().get(orientation).addActionListener(event -> handleMove(orientation));
+            board.getDoorLockedButtons().get(orientation).addActionListener(event -> handleMove(orientation));
+        });
 
-        sud.setOpaque(false);
-        sud.setContentAreaFilled(false);
-        sud.setBorderPainted(false);
+        IntStream.range(0, 3).forEach(id -> board.getKeyButtons().get(id).addActionListener(event -> handleKey(id)));
 
-        ouest.setOpaque(false);
-        ouest.setContentAreaFilled(false);
-        ouest.setBorderPainted(false);
-
-        est.setOpaque(false);
-        est.setContentAreaFilled(false);
-        est.setBorderPainted(false);
-
-        nord1.setOpaque(false);
-        nord1.setContentAreaFilled(false);
-        nord1.setBorderPainted(false);
-
-        sud1.setOpaque(false);
-        sud1.setContentAreaFilled(false);
-        sud1.setBorderPainted(false);
-
-        ouest1.setOpaque(false);
-        ouest1.setContentAreaFilled(false);
-        ouest1.setBorderPainted(false);
-
-        est1.setOpaque(false);
-        est1.setContentAreaFilled(false);
-        est1.setBorderPainted(false);
-
-        key1.setOpaque(false);
-        key1.setContentAreaFilled(false);
-        key1.setBorderPainted(false);
-
-        key2.setOpaque(false);
-        key2.setContentAreaFilled(false);
-        key2.setBorderPainted(false);
-
-        key3.setOpaque(false);
-        key3.setContentAreaFilled(false);
-        key3.setBorderPainted(false);
-
-        food.setOpaque(false);
-        food.setContentAreaFilled(false);
-        food.setBorderPainted(false);
-
-        med.setOpaque(false);
-        med.setContentAreaFilled(false);
-        med.setBorderPainted(false);
-
-        cuisinier.setOpaque(false);
-        cuisinier.setContentAreaFilled(false);
-        cuisinier.setBorderPainted(false);
-
-        medecin.setOpaque(false);
-        medecin.setContentAreaFilled(false);
-        medecin.setBorderPainted(false);
-
-        monstre.setOpaque(false);
-        monstre.setContentAreaFilled(false);
-        monstre.setBorderPainted(false);
-
-        tresorbutton.setOpaque(false);
-        tresorbutton.setContentAreaFilled(false);
-        tresorbutton.setBorderPainted(false);
-
-        nord.addActionListener(new Nord());
-        sud.addActionListener(new Sud());
-        ouest.addActionListener(new Ouest());
-        est.addActionListener(new Est());
-
-        nord1.addActionListener(new Nord());
-        sud1.addActionListener(new Sud());
-        ouest1.addActionListener(new Ouest());
-        est1.addActionListener(new Est());
-
-        key1.addActionListener(new Cle1());
-        key2.addActionListener(new Cle2());
-        key3.addActionListener(new Cle3());
-        food.addActionListener(new Food());
-        med.addActionListener(new Med());
-        monstre.addActionListener(new monster());
-        cuisinier.addActionListener(new Cuisine());
-        medecin.addActionListener(new Medecine());
-        replay.addActionListener(new rep());
-        quitter.addActionListener(new quit());
+        board.getFoodButton().addActionListener(event -> {
+            Scenario scenario = Game.getInstance().getScenario();
+            scenario.getFoods().stream()
+                    .filter(food -> food.getPosition().equals(scenario.getPlayer().getRoom()))
+                    .findFirst()
+                    .ifPresent(food -> {
+                        scenario.getPlayer().manger(food);
+                        SoundRegistry.EAT_SOUND.play();
+                        actionLabel.setText("Le joueur a mangé");
+                    });
+            forceLabel.setText("Force : " + scenario.getPlayer().getForce());
+        });
+        board.getMonsterButton().addActionListener(e -> {
+            Scenario scenario = Game.getInstance().getScenario();
+            scenario.getPlayer().getMonsterNearby().ifPresent(monster -> {
+                if(scenario.getPlayer().fight(monster)){
+                    actionLabel.setText("Le joueur à gagné !");
+                    //TODO monster set invisible
+                }else{
+                    actionLabel.setText("Le monstre à gagné ! ");
+                    scenario.getPlayer().setVie(scenario.getPlayer().getVie()-monster.getForce());
+                    healthLabel.setText("Vie : " + scenario.getPlayer().getVie());
+                    checkLoose(scenario.getPlayer());
+                }
+            });
+        });
+        board.getDrugButton().addActionListener(e -> {
+            Scenario scenario = Game.getInstance().getScenario();
+            scenario.getDrugs().stream()
+                    .filter(drug -> drug.getPosition().equals(scenario.getPlayer().getRoom()))
+                    .findFirst()
+                    .ifPresent(drug -> {
+                        scenario.getPlayer().soigner(drug);
+                        SoundRegistry.HEALTH_SOUND.play();
+                        actionLabel.setText("Le joueur a pris un medicament");
+                    });
+            healthLabel.setText("Vie : " + scenario.getPlayer().getVie());
+        });
+        board.getCookerButton().addActionListener(e -> {
+            Scenario scenario = Game.getInstance().getScenario();
+            scenario.getPlayer().setForce(Player.START_FORCE);
+            actionLabel.setText("Le joueur s'est nourrit");
+            forceLabel.setText("Force : " + scenario.getPlayer().getForce());
+            healthLabel.setText("Vie : " + scenario.getPlayer().getVie());
+        });
+        board.getDoctorButton().addActionListener(e -> {
+            Scenario scenario = Game.getInstance().getScenario();
+            scenario.getPlayer().setVie(Player.START_VIE);
+            actionLabel.setText("Le joueur s'est soigné");
+            forceLabel.setText("Force : " + scenario.getPlayer().getForce());
+            healthLabel.setText("Vie : " + scenario.getPlayer().getVie());
+        });
+        replay.addActionListener(e -> Game.getInstance().start());
+        quitter.addActionListener(e -> System.exit(0));
 
         south.add(replay);
         south.add(quitter);
 
-        panelgagne.setBackground(Color.white);
-        panelgagne.setLayout(new BorderLayout());
-        panelgagne.add(gagne, BorderLayout.CENTER);
-        panelgagne.add(south, BorderLayout.SOUTH);
+        winPanel.setBackground(Color.white);
+        winPanel.setLayout(new BorderLayout());
+        winPanel.add(gagne, BorderLayout.CENTER);
+        winPanel.add(south, BorderLayout.SOUTH);
         gagne.setForeground(Color.black);
         gagne.setHorizontalAlignment(JLabel.CENTER);
-        panelgagne.add(gagne, BorderLayout.CENTER);
+        winPanel.add(gagne, BorderLayout.CENTER);
 
-        panelperdu.setBackground(Color.white);
-        panelperdu.setLayout(new BorderLayout());
-        panelperdu.add(perdu, BorderLayout.CENTER);
-        panelperdu.add(south, BorderLayout.SOUTH);
+        loosePanel.setBackground(Color.white);
+        loosePanel.setLayout(new BorderLayout());
+        loosePanel.add(perdu, BorderLayout.CENTER);
+        loosePanel.add(south, BorderLayout.SOUTH);
         perdu.setForeground(Color.black);
         perdu.setHorizontalAlignment(JLabel.CENTER);
-        panelperdu.add(perdu, BorderLayout.CENTER);
+        loosePanel.add(perdu, BorderLayout.CENTER);
 
         panel = new JPanel() {
             @Override
@@ -220,52 +155,36 @@ public class GUI extends JFrame {
 
         this.setSize(MAIN_WIDTH, MAIN_HEIGHT);
 
-
         panel.setFocusable(true);
 
+        inventoryLabel = new JLabel(getInventoryString(Game.getInstance().getScenario().getPlayer()));
 
-        for (int i = 0; i < objects.length; i++) {
-            if (objects[i] != null)
-                objets = objets + objects[i].toString() + "; ";
-            else
-                objets = objets + "[VIDE]; ";
-        }
-
-
-        obj = new JLabel(objets);
-
-        messages = new JLabel("");
-        messages.setForeground(Color.BLACK);
-        messages.setBounds(5, 100, 400, 100);
+        actionLabel = new JLabel("");
+        actionLabel.setForeground(Color.BLACK);
+        actionLabel.setBounds(5, 100, 400, 100);
 
         info = new JLabel("Informations du joueur ");
         info.setForeground(Color.BLACK);
-        Force = new JLabel("Force : " + force);
-        Force.setForeground(Color.BLACK);
-        Vie = new JLabel("Point de vie : " + vie);
-        Vie.setForeground(Color.BLACK);
-        obj.setForeground(Color.BLACK);
+        forceLabel = new JLabel("Force : " + Game.getInstance().getScenario().getPlayer().getForce());
+        forceLabel.setForeground(Color.BLACK);
+        healthLabel = new JLabel("Point de vie : " + Game.getInstance().getScenario().getPlayer().getVie());
+        healthLabel.setForeground(Color.BLACK);
+        inventoryLabel.setForeground(Color.BLACK);
 
         info.setBounds(135, 5, 300, 14);
-        Force.setBounds(5, 10, 100, 100);
-        Vie.setBounds(5, 40, 100, 100);
-        obj.setBounds(5, 70, 400, 100);
+        forceLabel.setBounds(5, 10, 100, 100);
+        healthLabel.setBounds(5, 40, 100, 100);
+        inventoryLabel.setBounds(5, 70, 400, 100);
 
-        infoJoueur.add(info);
-        infoJoueur.add(Force);
-        infoJoueur.add(Vie);
-        infoJoueur.add(obj);
-        infoJoueur.add(messages);
+        playerDataFrame.add(info);
+        playerDataFrame.add(forceLabel);
+        playerDataFrame.add(healthLabel);
+        playerDataFrame.add(inventoryLabel);
+        playerDataFrame.add(actionLabel);
 
-        this.setContentPane(pan);
+        this.setContentPane(board);
     }
 
-    /**
-     * This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
-     */
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -281,264 +200,79 @@ public class GUI extends JFrame {
         pack();
     }
 
-    /**
-     * @param o
-     */
-    public void removeObjet(Objet o) {
-        for (int i = 0; i < objet.length; i++) {
-            if (objet[i] == o) {
-                objet[i] = null;
-                break;
-            }
-        }
-    }
-
-
-    class Cuisine implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            force = Player.START_FORCE;
-            messages.setText("Le joueur s'est nourrit");
-            refreshvie();
-            refreshforce();
-        }
-    }
-
-    class Medecine implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            vie = Player.START_FORCE;
-            messages.setText("Le joueur s'est soign�");
-            refreshvie();
-            refreshforce();
-        }
-    }
-
-    class Nord implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (player.getPosition().possedePieceVoisine('N') != null && player.peutOuvrir(player.getPosition().AuNord())) {
-                player.move('N');
+    private void handleMove(Orientation orientation){
+        Player player = Game.getInstance().getScenario().getPlayer();
+        player.getRoom().getDoor(orientation).ifPresent(door -> {
+            if (player.peutOuvrir(door)) {
+                player.move(orientation);
                 SoundRegistry.OPEN_DOOR_SOUND.play();
-                messages.setText("Le joueur s'est d�placer au nord");
-                force--;
-                refreshforce();
-                refreshvie();
-                perdu();
-                gagne();
-            } else if (player.getPosition().possedePieceVoisine('N') != null && !player.peutOuvrir(player.getPosition().AuNord())) {
-                MessageService.message = "Vous n'avez pas la cl� !";
-                messages.setText("Vous n'avez pas la cl� !");
+                actionLabel.setText("Le joueur s'est déplacé au "+orientation);
+                player.setForce(Math.max(player.getForce() - 1, 0));
+                forceLabel.setText("Force : " + player.getForce());
+                healthLabel.setText("Vie : " + player.getVie());
+                checkLoose(player);
+                checkVictory(player);
             } else {
-                player.setPosition(player.getPosition());
-                MessageService.message = "Il n'y a pas de porte";
-                messages.setText("Il n'y a pas de porte");
+                actionLabel.setText("Vous n'avez pas la clé !");
             }
-        }
-    }
-
-    class Sud implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (player.getPosition().possedePieceVoisine('S') != null && player.peutOuvrir(player.getPosition().AuSud())) {
-                player.move('S');
-                SoundRegistry.OPEN_DOOR_SOUND.play();
-                messages.setText("Le joueur s'est d�plac� au sud");
-                force--;
-                refreshforce();
-                refreshvie();
-                perdu();
-                gagne();
-            }
-
-        }
-    }
-
-    class Ouest implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (player.getPosition().possedePieceVoisine('O') != null && player.peutOuvrir(player.getPosition().AOuest())) {
-                player.move('O');
-                SoundRegistry.OPEN_DOOR_SOUND.play();
-                messages.setText("Le joueur s'est d�plac� � l'ouest");
-                force--;
-                refreshforce();
-                refreshvie();
-                perdu();
-                gagne();
-            }
-
-        }
-    }
-
-    class Est implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            if (player.getPosition().possedePieceVoisine('E') != null && player.peutOuvrir(player.getPosition().AEst())) {
-                player.move('E');
-                SoundRegistry.OPEN_DOOR_SOUND.play();
-                messages.setText("Le joueur s'est d�plac� � l'est");
-                force--;
-                refreshforce();
-                refreshvie();
-                perdu();
-                gagne();
-            }
-
-        }
-    }
-
-    class Cle1 implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            prendreCle(cl1);
-            SoundRegistry.TAKE_SOUND.play();
-            key1.setVisible(false);
-            refreshinv();
-            messages.setText("La cle 1 a bien prise");
-        }
-    }
-
-    class Cle2 implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            prendreCle(cl2);
-            SoundRegistry.TAKE_SOUND.play();
-            key2.setVisible(false);
-            refreshinv();
-            messages.setText("La cle 2 a bien prise");
-        }
-    }
-
-    class Cle3 implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            prendreCle(cl3);
-            SoundRegistry.TAKE_SOUND.play();
-            key3.setVisible(false);
-            refreshinv();
-            messages.setText("La cle 3 a bien prise");
-        }
-    }
-
-
-    class Food implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            for (int i = 0; i < Scenario.objets.length; i++) {
-                if (Scenario.objets[i] instanceof Nourriture && Scenario.objets[i].getPosition() == player.getPosition()) {
-                    Nourriture n = (Nourriture) Scenario.objets[i];
-                    player.manger(n);
-                    force++;
-                    SoundRegistry.EAT_SOUND.play();
-                    messages.setText("Le joueur a mang�");
-
-                    break;
-
-                }
-
-            }
-
-            refreshforce();
-        }
-    }
-
-    class Med implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            for (int i = 0; i < Scenario.objets.length; i++) {
-                if (Scenario.objets[i] instanceof Medicament && Scenario.objets[i].getPosition() == player.getPosition()) {
-                    Medicament m = (Medicament) Scenario.objets[i];
-                    player.soigner(m);
-                    SoundRegistry.HEALTH_SOUND.play();
-                    messages.setText("Le joueur a pris un medicament");
-                    break;
-                }
-            }
-            refreshvie();
-        }
-    }
-
-    class rep implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            GUI.main(null);
-        }
-    }
-
-    class quit implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            System.exit(0);
-        }
-    }
-
-    class monster implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            Monstre m = new Monstre(player.getPosition());
-            for (int i = 0; i < individuses.length; i++) {
-                if (individuses[i] instanceof Monstre && individuses[i].getPosition() == player.getPosition()) {
-                    m = (Monstre) individuses[i];
-                    break;
-                }
-            }
-            messages.setText("Le combat a commenc� ");
-            player.combat(m);
-            vie -= 2;
-
-        }
-    }
-
-    private boolean gagne() {
-        if (player.getPosition() == tresor.getPosition()) {
-            MessageService.message = "Vous avez gagn� :) !";
-            messages.setText("Vous avez gagn� :) !");
-            pan.setVisible(false);
-            this.setContentPane(panelgagne);
-            SoundRegistry.WIN_SOUND.play();
-            SoundRegistry.BACKGROUND_SOUND.stop();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-
-    private void prendreCle(Key c) {
-        if (i < 4) {
-            objects[i] = c;
-            i++;
-        }
-    }
-
-    private boolean perdu() {
-        if (force == 0 || vie == 0) {
-            MessageService.message = "Vous avez perdu :( !";
-            pan.setVisible(false);
-            this.setContentPane(panelperdu);
-            SoundRegistry.FAIL_SOUND.play();
-            SoundRegistry.BACKGROUND_SOUND.stop();
-            return true;
-        } else return false;
-    }
-
-    /**
-     *
-     */
-    public void refreshforce() {
-        Force.setText("Force : " + force);
-    }
-
-    /**
-     *
-     */
-    public void refreshvie() {
-        Vie.setText("Vie : " + vie);
-    }
-
-    /**
-     *
-     */
-    public void refreshinv() {
-        for (int i = 0; i < objects.length; i++) {
-            if (objects[i] != null) objets = objets + objects[i].toString() + "; ";
-            else objets = objets + "[VIDE] ";
-        }
-    }
-
-    public static void main(String[] args) {
-        new Scenario();
-        java.awt.EventQueue.invokeLater(() -> {
-            SoundRegistry.BACKGROUND_SOUND.play();
-            new GUI().setVisible(true);
         });
+    }
+
+    private void handleKey(int id){
+        final Scenario scenario = Game.getInstance().getScenario();
+        Key key = scenario.getKeys().get(id);
+        prendreCle(scenario.getPlayer(), key);
+        board.getKeyButtons().get(id).setVisible(false);
+        inventoryLabel.setText(getInventoryString(scenario.getPlayer()));
+        actionLabel.setText("La clé "+(id+1)+" à bien été prise");
+    }
+
+    private void prendreCle(Player player, Key key) {
+        int availableSlot = -1;
+        for(int i = 0 ; i < 4 ; i++){
+            if(player.getInventaire()[i] != null){
+                availableSlot = i;
+            }
+        }
+        if (availableSlot != -1) {
+            player.getInventaire()[availableSlot] = key;
+        }else{
+            actionLabel.setText("Inventaire plein !");
+        }
+    }
+
+    private void checkLoose(Player player) {
+        if (player.getForce() > 0 && player.getVie() > 0) return;
+
+        String reason;
+        if (player.getForce() <= 0) {
+            reason = "Vous n'avez plus de force !";
+        } else {
+            reason = "Vous n'avez plus de vie !";
+        }
+        actionLabel.setText(reason);
+        this.setContentPane(loosePanel);
+        SoundRegistry.FAIL_SOUND.play();
+        SoundRegistry.BACKGROUND_SOUND.stop();
+    }
+
+    private void checkVictory(Player player) {
+        if (!player.getRoom().equals(Game.getInstance().getScenario().getChest().getPosition())) return;
+
+        actionLabel.setText("Vous avez gagné :) !");
+        this.setContentPane(winPanel);
+        SoundRegistry.WIN_SOUND.play();
+        SoundRegistry.BACKGROUND_SOUND.stop();
+    }
+
+
+    private String getInventoryString(Player player) {
+        String content = "Objets : ";
+        for (int i = 0; i < player.getInventaire().length; i++) {
+            if (player.getInventaire()[i] != null) content += player.getInventaire()[i].toString() + "; ";
+            else content += "[VIDE] ";
+        }
+        return content;
     }
 
 }

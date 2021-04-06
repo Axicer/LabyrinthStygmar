@@ -1,17 +1,17 @@
 package engine.modele.entity;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class MonsterFactory {
 
-    private Piece piece;
+    private Room room;
     private int force;
     private boolean useCustomForce = false;
 
     public MonsterFactory() {}
 
-    public MonsterFactory inPiece(Piece piece){
-        this.piece = piece;
+    public MonsterFactory inPiece(Room room){
+        this.room = room;
         return this;
     }
 
@@ -27,7 +27,7 @@ public class MonsterFactory {
     }
 
     public Monstre create(){
-        Monstre m = new Monstre(piece);
+        Monstre m = new Monstre(room);
         if(useCustomForce){
             m.setForce(force);
         }

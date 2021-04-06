@@ -1,9 +1,9 @@
 package engine.modele.entity.player;
 
-import engine.game.MessageService;
+import engine.game.Game;
 import engine.game.Scenario;
-import engine.modele.batiment.Piece;
-import engine.modele.batiment.Porte;
+import engine.modele.map.room.Room;
+import engine.modele.map.door.Door;
 import engine.modele.entity.Cuisinier;
 import engine.modele.entity.Entity;
 import engine.modele.entity.Medecin;
@@ -13,6 +13,7 @@ import engine.modele.objets.Medicament;
 import engine.modele.objets.Nourriture;
 import engine.modele.objets.Objet;
 
+import java.util.List;
 import java.util.Optional;
 
 public class Player extends Entity implements Vivant, Puissant {
@@ -25,7 +26,7 @@ public class Player extends Entity implements Vivant, Puissant {
 
     public Objet[] inventaire;
 
-    public Player(Piece p) {
+    public Player(Room p) {
         super(p);
         force = START_FORCE;
         vie = START_VIE;
@@ -52,32 +53,28 @@ public class Player extends Entity implements Vivant, Puissant {
 
         // pièce
         System.out.println("Dans la pièce du joueur");
-        super.getPosition().afficher();
+        super.getRoom().afficher();
     }
 
     public Objet[] getInventaire() {
         return inventaire;
     }
 
-    public boolean combat(Monstre m) {
-        if (getPosition() != m.getPosition()) {
+    public boolean fight(Monstre m) {
+        if (getRoom() != m.getRoom()) {
             return false;
         }
 
-        boolean aGagné = false;
-        MessageService.message = "Combat!!\n";
+        boolean won = false;
         int sommeForce = force + m.getForce();
         int tirage = (int) (Math.random() * sommeForce);
-        MessageService.message += "tirage : " + tirage + "\n";
         if (tirage < this.force) { // si tirage compris entre 0 et force le joueur gagne
-            MessageService.message += "Joueur gagne";
-            aGagné = true;
+            won = true;
         } else { // si tirage compris entre force et (force + force du monstre) le monstre gagne
-            MessageService.message += "Monstre gagne";
             this.vie--;
         }
 
-        return aGagné;
+        return won;
     }
 
     // -------------------  ATTRIBUTS PUISSANT  --------------------------------------
@@ -85,12 +82,10 @@ public class Player extends Entity implements Vivant, Puissant {
     @Override
     public void manger(Nourriture n) {
         force = Math.min(force + n.getForce(), START_FORCE);
-        MessageService.message = "la force est maintenant de " + this.force;
     }
 
     @Override
     public void nourrir() {
-        MessageService.message = "Nourrir";
         force = START_FORCE;
     }
 
@@ -109,12 +104,10 @@ public class Player extends Entity implements Vivant, Puissant {
     @Override
     public void soigner(Medicament m) {
         vie = Math.min(vie + m.getVie(), START_FORCE);
-        MessageService.message = "Les points de vie sont maintenant de " + vie;
     }
 
     @Override
     public void guerir() {
-        MessageService.message = "Guerir";
         vie = START_VIE;
     }
 
@@ -135,9 +128,9 @@ public class Player extends Entity implements Vivant, Puissant {
      * on va parcourir tous les objets de notre inventaire pour savoir si le joueur
      * possède la clé correspondant au numéro de la porte fermée.
      */
-    public boolean peutOuvrir(Porte p) {
+    public boolean peutOuvrir(Door p) {
         boolean open = false;
-        if (!p.estFermé()) {//si la porte est déjà ouverte on passe
+        if (!p.isClosed()) {//si la porte est déjà ouverte on passe
             open = true;
         } else {
             for (Objet objet : inventaire) {
@@ -153,20 +146,20 @@ public class Player extends Entity implements Vivant, Puissant {
     }
 
     public Optional<Monstre> getMonsterNearby() {
-        return Optional.ofNullable((Monstre)anyOfType(Scenario.entities, Monstre.class).orElse(null));
+        return Optional.ofNullable((Monstre)anyOfType(Game.getInstance().getScenario().getEntities(), Monstre.class).orElse(null));
     }
 
     public Optional<Medecin> getMedecinNearby() {
-        return Optional.ofNullable((Medecin)anyOfType(Scenario.entities, Medecin.class).orElse(null));
+        return Optional.ofNullable((Medecin)anyOfType(Game.getInstance().getScenario().getEntities(), Medecin.class).orElse(null));
     }
 
     public Optional<Cuisinier> getCuisinierNearby() {
-        return Optional.ofNullable((Cuisinier)anyOfType(Scenario.entities, Cuisinier.class).orElse(null));
+        return Optional.ofNullable((Cuisinier)anyOfType(Game.getInstance().getScenario().getEntities(), Cuisinier.class).orElse(null));
     }
 
-    private Optional<? extends Entity> anyOfType(Entity[] entities, Class<? extends Entity> type) {
+    private Optional<? extends Entity> anyOfType(List<Entity> entities, Class<? extends Entity> type) {
         for (Entity entity : entities) {
-            if (type.isAssignableFrom(entity.getClass()) && entity.getPosition() == this.getPosition()) {
+            if (type.isAssignableFrom(entity.getClass()) && entity.getRoom().equals(this.getRoom())) {
                 return Optional.of(entity);
             }
         }

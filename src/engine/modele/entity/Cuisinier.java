@@ -1,10 +1,10 @@
 package engine.modele.entity;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class Cuisinier extends Entity {
 
-    public Cuisinier(Piece p) {
+    public Cuisinier(Room p) {
         super(p);
     }
 

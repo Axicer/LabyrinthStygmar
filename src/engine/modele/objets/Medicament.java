@@ -1,13 +1,13 @@
 package engine.modele.objets;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class Medicament extends Objet {
 
     private static final int MAX_VIE = 10;
     private int vie;
 
-    public Medicament(Piece p) {
+    public Medicament(Room p) {
         super(p);
         vie = (int) (Math.random()*MAX_VIE);
     }

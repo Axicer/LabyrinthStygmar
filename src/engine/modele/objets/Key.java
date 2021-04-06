@@ -1,10 +1,10 @@
 package engine.modele.objets;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class Key extends Objet {
 
-    public Key(Piece p, int n) {
+    public Key(Room p, int n) {
         super(p, n);
     }
 

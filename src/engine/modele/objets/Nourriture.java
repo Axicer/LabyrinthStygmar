@@ -1,13 +1,13 @@
 package engine.modele.objets;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class Nourriture extends Objet {
 
     private static final int MAX_FORCE = 10;
     private int force;
 
-    public Nourriture(Piece p) {
+    public Nourriture(Room p) {
         super(p);
         force = (int) (Math.random() * MAX_FORCE);
     }

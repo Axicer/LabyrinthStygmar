@@ -2,7 +2,7 @@ package engine.modele.objets;
 
 import engine.modele.Descriptible;
 import engine.modele.Identifiable;
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 /**
  * Cette classe donne une position et un numero à chaque objets du jeu.
@@ -10,15 +10,15 @@ import engine.modele.batiment.Piece;
 
 public class Objet implements Descriptible, Identifiable {
 
-    private Piece position;
+    private Room position;
     private int identifiant;
 
-    public Objet(Piece p, int identifiant) {
+    public Objet(Room p, int identifiant) {
         position = p;
         this.identifiant = identifiant;
     }
 
-    public Objet(Piece p){
+    public Objet(Room p){
         this(p, (int) (Math.random()*Integer.MAX_VALUE));
     }
 
@@ -27,11 +27,11 @@ public class Objet implements Descriptible, Identifiable {
         position.afficher();
     }
 
-    public Piece getPosition() {
+    public Room getPosition() {
         return position;
     }
 
-    public void setPosition(Piece p) {
+    public void setPosition(Room p) {
         position = p;
     }
 

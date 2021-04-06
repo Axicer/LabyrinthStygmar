@@ -1,10 +1,10 @@
 package engine.modele.entity;
 
-import engine.modele.batiment.Piece;
+import engine.modele.map.room.Room;
 
 public class Medecin extends Entity {
 
-	  public Medecin(Piece p)
+	  public Medecin(Room p)
 	  {
 		  super(p);
 	  }
